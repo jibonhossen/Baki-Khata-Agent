@@ -1,53 +1,110 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import { Platform } from 'react-native';
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+// Theme constants for Agent App
+export const colors = {
+  // Background colors
+  background: {
+    primary: '#0A0A0F',
+    secondary: '#12121A',
+    tertiary: '#1A1A25',
+    card: '#1E1E2D',
+    elevated: '#252535',
   },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+
+  // Text colors
+  text: {
+    primary: '#FFFFFF',
+    secondary: '#B4B4C0',
+    muted: '#6B6B80',
+    placeholder: '#4A4A5A',
+  },
+
+  // Primary accent (orange for agent app)
+  primary: {
+    default: '#FF6B35',
+    light: '#FF8C5A',
+    dark: '#E55A2B',
+    gradient: ['#FF6B35', '#FF8C5A'] as const,
+  },
+
+  // Status colors
+  success: {
+    default: '#10B981',
+    light: '#34D399',
+  },
+  warning: {
+    default: '#F59E0B',
+    light: '#FBBF24',
+  },
+  danger: {
+    default: '#EF4444',
+    light: '#F87171',
+  },
+
+  // Border colors
+  border: {
+    default: '#2A2A3A',
+    light: '#3A3A4A',
   },
 };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  base: 16,
+  lg: 20,
+  xl: 24,
+  '2xl': 32,
+  '3xl': 48,
+};
+
+export const borderRadius = {
+  sm: 6,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  '2xl': 24,
+  full: 9999,
+};
+
+export const typography = {
+  fontSize: {
+    xs: 11,
+    sm: 13,
+    base: 15,
+    md: 17,
+    lg: 19,
+    xl: 22,
+    '2xl': 26,
+    '3xl': 32,
+    '4xl': 40,
   },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
+};
+
+export const shadows = {
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+  md: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
   },
-});
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+};
+
+// Format currency in BDT
+export const formatCurrency = (amount: number): string => {
+  return `৳${amount.toLocaleString('bn-BD')}`;
+};
