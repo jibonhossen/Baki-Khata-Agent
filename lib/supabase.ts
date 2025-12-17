@@ -38,9 +38,24 @@ export interface SubscriptionPlan {
     is_active: boolean;
 }
 
+export interface SubscriptionPayment {
+    id: string;
+    subscription_id: string | null;
+    user_id: string;
+    amount: number;
+    payment_method: string | null;
+    collected_by_name: string | null;
+    collected_by_phone: string | null;
+    payment_date: string | null;
+    notes: string | null;
+    created_at: string | null;
+}
+
 class SupabaseService {
     client: SupabaseClient;
     private currentAgent: Agent | null = null;
+
+    private listeners: ((agent: Agent | null) => void)[] = [];
 
     constructor() {
         this.client = createClient(supabaseUrl, supabaseAnonKey, {
@@ -48,6 +63,20 @@ class SupabaseService {
                 storage: AsyncStorage,
             },
         });
+    }
+
+    // Subscribe to auth state changes
+    onAuthStateChange(callback: (agent: Agent | null) => void) {
+        this.listeners.push(callback);
+        // Immediately notify with current state
+        callback(this.currentAgent);
+        return () => {
+            this.listeners = this.listeners.filter(cb => cb !== callback);
+        };
+    }
+
+    private notifyListeners() {
+        this.listeners.forEach(cb => cb(this.currentAgent));
     }
 
     // Agent login with phone + PIN
@@ -67,6 +96,7 @@ class SupabaseService {
                 const agent = data[0] as Agent;
                 this.currentAgent = agent;
                 await AsyncStorage.setItem(AGENT_STORAGE_KEY, JSON.stringify(agent));
+                this.notifyListeners();
                 return agent;
             }
 
@@ -95,6 +125,7 @@ class SupabaseService {
     async logoutAgent(): Promise<void> {
         this.currentAgent = null;
         await AsyncStorage.removeItem(AGENT_STORAGE_KEY);
+        this.notifyListeners();
     }
 
     // Get current agent
@@ -171,6 +202,26 @@ class SupabaseService {
         } catch (error) {
             console.error('Exception extending subscription:', error);
             return false;
+        }
+    }
+
+    // Fetch subscription payment history for a user
+    async getPaymentHistory(userId: string): Promise<SubscriptionPayment[]> {
+        try {
+            // Use RPC to bypass RLS and join agent details
+            const { data, error } = await this.client.rpc('get_subscription_payments', {
+                target_user_id: userId,
+            });
+
+            if (error) {
+                console.error('Error fetching payment history:', error);
+                return [];
+            }
+
+            return data || [];
+        } catch (error) {
+            console.error('Exception fetching payment history:', error);
+            return [];
         }
     }
 }

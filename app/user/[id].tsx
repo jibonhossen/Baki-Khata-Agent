@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, borderRadius, typography, shadows, formatCurrency } from '../../constants/theme';
-import supabase, { UserSubscription, SubscriptionPlan } from '../../lib/supabase';
+import supabase, { UserSubscription, SubscriptionPlan, SubscriptionPayment } from '../../lib/supabase';
 
 export default function UserDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,16 +26,19 @@ export default function UserDetailScreen() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [payments, setPayments] = useState<SubscriptionPayment[]>([]);
 
     const loadData = useCallback(async () => {
         try {
-            const [users, availablePlans] = await Promise.all([
+            const [users, availablePlans, paymentHistory] = await Promise.all([
                 supabase.getUserSubscriptions(),
                 supabase.getPlans(),
+                supabase.getPaymentHistory(id!),
             ]);
             const found = users.find(u => u.user_id === id);
             setUser(found || null);
             setPlans(availablePlans);
+            setPayments(paymentHistory);
             if (availablePlans.length > 0) {
                 setSelectedPlan(availablePlans[0]);
             }
@@ -275,6 +278,43 @@ export default function UserDetailScreen() {
                         )}
                     </LinearGradient>
                 </TouchableOpacity>
+
+                {/* Payment History */}
+                <View style={styles.historySection}>
+                    <Text style={styles.sectionTitle}>পেমেন্ট ইতিহাস</Text>
+                    {payments.length > 0 ? (
+                        payments.map((payment) => (
+                            <View key={payment.id} style={styles.paymentCard}>
+                                <View style={styles.paymentIcon}>
+                                    <Ionicons name="checkmark-circle" size={24} color={colors.success.default} />
+                                </View>
+                                <View style={styles.paymentInfo}>
+                                    <Text style={styles.paymentAmount}>
+                                        {formatCurrency(payment.amount)}
+                                    </Text>
+                                    <Text style={styles.paymentDate}>
+                                        {formatDate(payment.payment_date)}
+                                    </Text>
+                                    {payment.collected_by_name && (
+                                        <Text style={styles.paymentCollector}>
+                                            সংগ্রহকারী: {payment.collected_by_name}
+                                        </Text>
+                                    )}
+                                </View>
+                                <View style={styles.paymentMethod}>
+                                    <Text style={styles.methodText}>
+                                        {payment.payment_method || 'Cash'}
+                                    </Text>
+                                </View>
+                            </View>
+                        ))
+                    ) : (
+                        <View style={styles.emptyHistory}>
+                            <Ionicons name="receipt-outline" size={40} color={colors.text.muted} />
+                            <Text style={styles.emptyText}>কোন পেমেন্ট ইতিহাস নেই</Text>
+                        </View>
+                    )}
+                </View>
             </ScrollView>
         </View>
     );
@@ -487,5 +527,65 @@ const styles = StyleSheet.create({
         fontSize: typography.fontSize.lg,
         fontWeight: '600',
         color: colors.text.primary,
+    },
+    historySection: {
+        marginTop: spacing.xl,
+    },
+    paymentCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.background.card,
+        padding: spacing.base,
+        borderRadius: borderRadius.lg,
+        marginBottom: spacing.sm,
+        gap: spacing.md,
+    },
+    paymentIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.success.default + '20',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    paymentInfo: {
+        flex: 1,
+    },
+    paymentAmount: {
+        fontSize: typography.fontSize.base,
+        fontWeight: '600',
+        color: colors.text.primary,
+    },
+    paymentDate: {
+        fontSize: typography.fontSize.sm,
+        color: colors.text.muted,
+        marginTop: 2,
+    },
+    paymentCollector: {
+        fontSize: typography.fontSize.xs,
+        color: colors.text.secondary,
+        marginTop: 2,
+    },
+    paymentMethod: {
+        paddingHorizontal: spacing.sm,
+        paddingVertical: spacing.xs,
+        backgroundColor: colors.background.tertiary,
+        borderRadius: borderRadius.sm,
+    },
+    methodText: {
+        fontSize: typography.fontSize.xs,
+        color: colors.text.secondary,
+        textTransform: 'capitalize',
+    },
+    emptyHistory: {
+        alignItems: 'center',
+        paddingVertical: spacing.xl,
+        gap: spacing.md,
+        backgroundColor: colors.background.card,
+        borderRadius: borderRadius.lg,
+    },
+    emptyText: {
+        fontSize: typography.fontSize.base,
+        color: colors.text.muted,
     },
 });

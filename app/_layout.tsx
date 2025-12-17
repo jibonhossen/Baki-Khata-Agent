@@ -15,19 +15,22 @@ export default function RootLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const agent = await supabase.getStoredAgent();
+    // Initial check
+    supabase.getStoredAgent().then(agent => {
       setIsLoggedIn(!!agent);
-    } catch (error) {
-      setIsLoggedIn(false);
-    } finally {
       setIsLoading(false);
-    }
-  };
+    });
+
+    // Subscribe to changes
+    const unsubscribe = supabase.onAuthStateChange((agent) => {
+      setIsLoggedIn(!!agent);
+      setIsLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
